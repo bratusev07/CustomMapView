@@ -14,6 +14,7 @@ import android.widget.NumberPicker
 import android.widget.NumberPicker.OnValueChangeListener
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.content.ContextCompat
+import androidx.core.view.allViews
 import ovh.plrapps.mapview.MapView
 import ovh.plrapps.mapview.MapViewConfiguration
 import ovh.plrapps.mapview.ReferentialData
@@ -66,7 +67,7 @@ class CustomMap(private val context: Context, attrs: AttributeSet) :
     private var maxScale = 0f
     private var minScale = 0f
     private var maxPathWidth = 0f
-
+    private var lastPath = FloatArray(0)
     init {
         val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         inflater.inflate(R.layout.map_layout, this, true)
@@ -276,13 +277,19 @@ class CustomMap(private val context: Context, attrs: AttributeSet) :
         mapMarker.scaleY = tmp
     }
 
-    private fun updatePath() {
-        if (finishNode == startNode) return
+    private fun updatePath(): FloatArray {
+        if (finishNode == startNode) return FloatArray(0)
 
         moveStartMarker()
         moveFinishMarker()
         var path = calculatePath(startNode, finishNode)
         if(path.size < 2) path = calculatePath(startNode, finishNode)
+        lastPath = path
+        createDrawablePath(path)
+        return path
+    }
+
+    private fun createDrawablePath(path: FloatArray) {
         val drawablePath = object : PathView.DrawablePath {
             override val visible: Boolean = true
             override var path: FloatArray = path
@@ -296,7 +303,6 @@ class CustomMap(private val context: Context, attrs: AttributeSet) :
         } catch (_: Exception) {
         }
         mapView.addPathView(pathView)
-
     }
 
     private fun calculateAngel(x1: Int, y1: Int, x2: Int, y2: Int): Float {
